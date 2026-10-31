@@ -1,7 +1,7 @@
 # Kernels are cross-built on tron and pushed to /kernels from this machine, which
 # holds the attic login. Do this before pushing a recipe: CI stops without them.
 TRON ?= tron.netbird
-ATTIC = nix run nixpkgs#attic-client --
+ATTIC = nix shell nixpkgs\#attic-client -c attic
 
 .PHONY: kernels
 
