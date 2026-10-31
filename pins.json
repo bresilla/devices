@@ -11,5 +11,13 @@
     "r8168-firmware": "/nix/store/a3g6ij0cvi9fzzfgyifx1av8k78bhrd2-r8168-firmware",
     "raspberrypi-firmware": "/nix/store/8ysyz6ajda23n8s4r2wv6l7q9iw1l381-raspberrypi-firmware-20260915",
     "raspberrypi-wireless-firmware": "/nix/store/nzh51pj855vnirswvdysdvv5zd3g0il8-raspberrypi-wireless-firmware-2026-03-21"
+  },
+  "kernels": {
+    "fp6": "/nix/store/pdkixwprxrp9ny7y1frndg0d0jfkm8y8-linux-aarch64-unknown-linux-gnu-7.2.0",
+    "fp6-modules": "/nix/store/hk7vvpwc9yqv7yifrnnfiv0h68zn0jkk-linux-aarch64-unknown-linux-gnu-7.2.0-modules",
+    "odin3": "/nix/store/awpgri6zpsq7zvk5w208bajnh0972qqw-linux-aarch64-unknown-linux-gnu-7.2.6",
+    "odin3-modules": "/nix/store/mv8p4yi9vsa50kqq0pg1fg67vvg9mzmq-linux-aarch64-unknown-linux-gnu-7.2.6-modules",
+    "spark": "/nix/store/br5s8kqyh5p49r3i0fydv795amrpdp95-linux-aarch64-unknown-linux-gnu-7.0.14-nvidia",
+    "spark-modules": "/nix/store/vcqyg4vppnkz5dlma0bhbvx8a5vkg6s0-linux-aarch64-unknown-linux-gnu-7.0.14-nvidia-modules"
   }
 }
