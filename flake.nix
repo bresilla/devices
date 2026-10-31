@@ -61,6 +61,7 @@
           };
         in
         [
+          spark.kernel.configfile
           spark.nvidiaOpen
           spark.driver
           spark.nvidiaTools

@@ -10,9 +10,11 @@ kernels:
 		drv=$$(nix eval --raw .#kernels.$$name.drvPath); \
 		out=$$(nix eval --raw .#kernels.$$name.outPath); \
 		modules=$$(nix eval --raw .#kernels.$$name.modules.outPath); \
+		config=$$(nix eval --raw .#kernels.$$name.configfile.outPath 2>/dev/null || true); \
+		configdrv=$$(nix eval --raw .#kernels.$$name.configfile.drvPath 2>/dev/null || true); \
 		echo "== $$name: $$out"; \
-		nix copy --no-check-sigs --derivation --to ssh-ng://$(TRON) $$drv; \
-		ssh -t $(TRON) nix build --no-link -L "$$drv^out,modules"; \
-		nix copy --no-check-sigs --from ssh-ng://$(TRON) $$out $$modules; \
-		$(ATTIC) push home:kernels --no-closure $$out $$modules; \
+		nix copy --no-check-sigs --derivation --to ssh-ng://$(TRON) $$drv $$configdrv; \
+		ssh -t $(TRON) nix build --no-link -L "$$drv^out,modules" $${configdrv:+"$$configdrv^out"}; \
+		nix copy --no-check-sigs --from ssh-ng://$(TRON) $$out $$modules $$config; \
+		$(ATTIC) push home:kernels --no-closure $$out $$modules $$config; \
 	done
