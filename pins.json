@@ -7,6 +7,7 @@
     "nvidia-gsp-firmware": "/nix/store/izq0lpmjd69j1lysi4mcsgg2f30v1g0f-nvidia-gsp-firmware-595.104.02",
     "nvidia-l4t-firmware": "/nix/store/jidq3ssxyvxj5f823095d6lby8spns65-nvidia-l4t-firmware-39.2.1-20260806224157",
     "odin3-firmware": "/nix/store/1iq1jy0r74w8b8bjxccbyxly1n177h3f-odin3-firmware",
+    "r8168-firmware": "/nix/store/a3g6ij0cvi9fzzfgyifx1av8k78bhrd2-r8168-firmware",
     "raspberrypi-firmware": "/nix/store/8ysyz6ajda23n8s4r2wv6l7q9iw1l381-raspberrypi-firmware-20260915",
     "raspberrypi-wireless-firmware": "/nix/store/nzh51pj855vnirswvdysdvv5zd3g0il8-raspberrypi-wireless-firmware-2026-03-21"
   }
