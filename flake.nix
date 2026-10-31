@@ -21,6 +21,9 @@
         fp6-fingerprint-firmware = pkgs.callPackage ./fairphone-fp6/firmware/fingerprint { };
         odin3-firmware = pkgs.callPackage ./ayn-odin3/firmware { };
         nvidia-gsp-firmware = pkgs.callPackage ./lenovo-pgx/firmware { };
+        nvidia-l4t-firmware = pkgs.callPackage ./aetina-orinnx/firmware { };
+        raspberrypi-firmware = pkgs.callPackage ./raspberrypi-pi5/firmware { };
+        raspberrypi-wireless-firmware = pkgs.callPackage ./raspberrypi-pi5/firmware/wireless.nix { };
       };
     };
 }
