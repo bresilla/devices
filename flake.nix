@@ -64,7 +64,7 @@
           spark = spark.kernel;
         };
 
-      # What else a kernel's machine downloads from /kernels: NVIDIA's driver for it.
+      # What else a kernel's machine downloads from /kernels.
       kernelExtras =
         let
           spark = import ./lenovo-pgx/kernel {
@@ -72,8 +72,18 @@
             dgxSpark = import ./lenovo-pgx/kernel/dgx-spark.nix;
           };
         in
+        [ spark.kernel.configfile ];
+
+      # NVIDIA's driver for those kernels. /kernels holds kernels only, so these live in
+      # /firmwares; unpinned and kept there forever, like the rest of that cache.
+      nvidia =
+        let
+          spark = import ./lenovo-pgx/kernel {
+            buildSystem = "x86_64-linux";
+            dgxSpark = import ./lenovo-pgx/kernel/dgx-spark.nix;
+          };
+        in
         [
-          spark.kernel.configfile
           spark.nvidiaOpen
           spark.driver
           spark.nvidiaTools

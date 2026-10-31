@@ -13,8 +13,8 @@ Each `<manufacturer-product>/` holds what anyone with that hardware would want:
 
 ## How it reaches a machine
 
-- **Firmware** is built by CI on push and stored in `cache.bresilla.com/firmwares`.
-- **Kernels** are cross-compiled on tron with `make kernels` and stored in
+- **Firmware** is built by CI on push and stored in `cache.bresilla.com/firmwares`, along with NVIDIA's drivers.
+- **Kernels** are cross-compiled on tron with `make kernels` and stored only in
   `cache.bresilla.com/kernels`. Run it before pushing a recipe.
 - **`device-recipes`** bundles every `kernel/` and `software/`. The updater in
   bresilla/nixos copies it into its flake.
