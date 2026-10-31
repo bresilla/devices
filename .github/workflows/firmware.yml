@@ -3,7 +3,7 @@ name: firmware
 on:
   push:
     branches: [main]
-    paths: ["**/firmware/**", "flake.nix", "flake.lock", ".github/workflows/firmware.yml"]
+    paths: ["**/firmware/**", "**/kernel/**", "flake.nix", "flake.lock", ".github/workflows/firmware.yml"]
   workflow_dispatch:
 
 permissions:
@@ -24,6 +24,16 @@ jobs:
           extra_nix_config: |
             extra-substituters = https://cache.bresilla.com/firmwares
             extra-trusted-public-keys = firmwares:qw8oRExHp2piySwHqyArmcZ8OoWWb4QAgutbrtfM0wQ=
+      # New recipes reach machines only once their kernels are built, or they would compile.
+      - name: Every kernel must be in /kernels
+        run: |
+          paths=$(nix eval --raw .#kernels --apply 'k: builtins.concatStringsSep " "
+            (builtins.concatMap (v: [ v.outPath v.modules.outPath ]) (builtins.attrValues k))')
+          for path in $paths; do
+            hash=$(basename "$path" | cut -d- -f1)
+            curl -fsS -o /dev/null "https://cache.bresilla.com/kernels/$hash.narinfo" \
+              || { echo "$path is not in /kernels: build it on tron first" >&2; exit 1; }
+          done
       # Machines read pins.json; record whatever was built.
       - name: Build all firmware
         id: build
