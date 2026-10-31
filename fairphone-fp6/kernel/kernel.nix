@@ -12,9 +12,6 @@ let
     TOUCHSCREEN_ESWIN_EPH8621 = "m";
     SND_SOC_WCD9378_SDW = "m";
     QCOMTEE = "m";
-    # Crash logs that survive the reset, for failures that leave no journal.
-    PSTORE_RAM = "y";
-    PSTORE_CONSOLE = "y";
     # Userspace IMS authenticates VoLTE with kernel IPsec transport sockets.
     XFRM_USER = "m";
     INET_ESP = "m";
