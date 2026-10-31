@@ -67,14 +67,30 @@ let
           find "$out" -type f -print0 | xargs -0 -r ${scrub} -t "$dev"
         '';
       });
-  # NVIDIA's open kernel module, built against this kernel; the libraries come from the system.
+  # NVIDIA's open kernel module, built against this kernel.
   nvidiaOpen = (import ./nvidia.nix (pkgs.linuxPackagesFor kernel).nvidiaPackages).open.overrideAttrs (old: {
     stripExclude = (old.stripExclude or [ ]) ++ [ "*.ko" ];
     preInstall = (old.preInstall or "") + ''
       find . -name '*.ko' -print0 | xargs -0 -r ${scrub} -t ${kernel.dev}
     '';
   });
+  # NVIDIA's libraries, native and from this same nixpkgs, so system updates never move them.
+  native = import nixpkgsSrc {
+    system = "aarch64-linux";
+    config.allowUnfree = true;
+  };
+  driver = (import ./nvidia.nix native.linuxPackages.nvidiaPackages).override { libsOnly = true; };
+  # nvidia-smi and the other tools libsOnly leaves out, linked to the driver's libraries.
+  nvidiaTools = native.runCommand "nvidia-tools-${driver.version}" { nativeBuildInputs = [ native.libarchive native.patchelf ]; } ''
+    skip=$(sed 's/^skip=//; t; d' ${driver.src})
+    tail -n +"$skip" ${driver.src} | bsdtar xf -
+    install -Dm755 -t "$out/bin" nvidia-smi nvidia-debugdump nvidia-cuda-mps-control nvidia-cuda-mps-server nvidia-bug-report.sh
+    for tool in nvidia-smi nvidia-debugdump nvidia-cuda-mps-control nvidia-cuda-mps-server; do
+      patchelf --set-interpreter "$(cat ${native.stdenv.cc}/nix-support/dynamic-linker)" \
+        --set-rpath ${lib.makeLibraryPath [ driver native.stdenv.cc.cc ]} "$out/bin/$tool"
+    done
+  '';
 in
 {
-  inherit kernel nvidiaOpen;
+  inherit kernel nvidiaOpen driver nvidiaTools;
 }

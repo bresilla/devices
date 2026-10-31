@@ -51,5 +51,20 @@
           odin3 = odin3.kernel;
           spark = spark.kernel;
         };
+
+      # What else a kernel's machine downloads from /kernels: NVIDIA's driver for it.
+      kernelExtras =
+        let
+          spark = import ./lenovo-pgx/kernel {
+            buildSystem = "x86_64-linux";
+            dgxSpark = import ./lenovo-pgx/kernel/dgx-spark.nix;
+          };
+        in
+        [
+          spark.nvidiaOpen
+          spark.driver
+          spark.nvidiaTools
+          spark.driver.persistenced
+        ];
     };
 }

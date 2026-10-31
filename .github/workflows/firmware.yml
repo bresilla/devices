@@ -29,6 +29,7 @@ jobs:
         run: |
           paths=$(nix eval --raw .#kernels --apply 'k: builtins.concatStringsSep " "
             (builtins.concatMap (v: [ v.outPath v.modules.outPath ]) (builtins.attrValues k))')
+          paths="$paths $(nix eval --raw .#kernelExtras --apply 'e: builtins.concatStringsSep " " (map (v: v.outPath) e)')"
           for path in $paths; do
             hash=$(basename "$path" | cut -d- -f1)
             curl -fsS -o /dev/null "https://cache.bresilla.com/kernels/$hash.narinfo" \
