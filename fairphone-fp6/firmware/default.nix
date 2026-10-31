@@ -13,11 +13,15 @@ stdenv.mkDerivation {
   '';
   installPhase = ''
     target="$out/lib/firmware/qcom/milos/fairphone/fp6"
-    mkdir -p "$target" "$out/lib/firmware/qca" "$out/lib/firmware/postmarketos"
+    mkdir -p "$target" "$out/lib/firmware/qca" "$out/lib/firmware/postmarketos" "$out/lib/firmware/qcom"
     cp adsp*.mbn cdsp*.mbn wpss.mbn ipa_fws.mbn modem.mbn gen80300_zap.mbn vpu20_2v.mbn *.jsn "$target/"
     cp -R modem_pr "$target/"
     cp msbtfw12.mbn msnv12.bin "$out/lib/firmware/qca/"
     cp gen80300_gmu.bin gen80300_sqe.fw "$out/lib/firmware/postmarketos/"
+    # The GPU driver looks for these two directly under qcom/.
+    for file in gen80300_sqe.fw gen80300_gmu.bin; do
+      ln -s "$out/lib/firmware/postmarketos/$file" "$out/lib/firmware/qcom/$file"
+    done
     chmod -R a+rX "$out"
   '';
   meta = {
