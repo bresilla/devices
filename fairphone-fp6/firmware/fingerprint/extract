@@ -1,0 +1,361 @@
+#!/bin/sh -u
+# fp6-vendor-blobs-extract - copy proprietary blobs out of the stock Android
+# partitions instead of distributing them. pmOS installs flash only
+# boot+userdata, so every installed FP6 still carries the stock vendor/dsp
+# partitions: the device duplicates files it already contains, for its own
+# operation - nothing is distributed by us or anyone else. Design, legal
+# frame and on-phone verification: fp6 repo journal/blobs/.
+#
+# Manifest fragments: /usr/share/fp6-vendor-blobs/manifest.d/*.manifest,
+# processed in sorted order; '#' comments and blank lines ignored:
+#
+#   file <partition[,partition...]> <path-in-partition> <dest> <sha256>
+#   mbn  <partition[,partition...]> <dir-in-partition> <name> <dest> <sha256|->
+#   rebind <bus> <device>
+#
+# Partition lists are tried in the order written, except that on an A/B
+# device the ACTIVE slot's partitions (androidboot.slot_suffix in
+# /proc/cmdline) come first: the other slot may hold a different Android
+# build, and for a signed image only the active slot's copy is guaranteed to
+# match the TZ that is running.
+#
+# file: mount the first available listed partition READ-ONLY (ext4 also
+#   gets -o noload - never a byte written to the stock partitions, not
+#   even a journal replay), copy <path-in-partition> to <dest>, verify the
+#   sha256. A missing source or a hash mismatch tries the next listed
+#   partition; no verified copy on any of them fails the run loudly - an
+#   unverified blob is never installed and a missing one never silently
+#   skipped. Dests that already exist are left alone (no hashing: a
+#   deliberately replaced file stays).
+# mbn: the same, for a Qualcomm trustlet, which is not shipped as one file.
+#   QTEE images live in the modem partition's image/ as an ELF header+hashes
+#   file (<name>.mdt) plus one payload per program header (<name>.b00, .b01,
+#   ...), and the loader wants them written back at each segment's p_offset.
+#   Reassembly is therefore not a concatenation: segments are page aligned
+#   but not contiguous, gaps stay zero, and two segments may share an offset
+#   (focal64 has two such pairs), so they are written in index order and the
+#   later one wins. With a real sha256 the guarantees are file's: the hash is
+#   of the reassembled image, a mismatch tries the next partition, an
+#   unverified image is never installed. With '-' the image is verified
+#   STRUCTURALLY instead - ELF64 header, every segment present at the size
+#   its program header declares, page-aligned offsets, sane total - and not
+#   against a pinned hash. That is the right mode for an OEM-signed trustlet:
+#   the OEM re-signs it every Android release, so one whole-image hash matches
+#   exactly one build (six builds, six hashes, one trustlet: fp6 repo
+#   journal/fingerprint/ 2026-09-07..11, two field units failed on the pin),
+#   while the loader in TZ verifies the signature and the per-segment hashes
+#   itself and refuses a damaged or foreign image (one flipped byte ->
+#   ERROR_ELF_SIGNATURE_ERROR, measured 2026-09-03). The sha256 of what was
+#   installed is logged either way.
+# rebind: if this fragment's run extracted at least one file, unbind and
+#   re-probe <device> on <bus> so the consuming driver picks the file up
+#   in the same boot. Unconditional on purpose: a still-bound consumer may
+#   have already failed a deferred firmware request that is never retried
+#   (aw88261 binds on i2c probe but requests the ACF only at card init),
+#   so only a fresh probe with the file present is a known-good state.
+#   All of a fragment's devices are unbound first, then re-probed, so a
+#   shared sound card re-forms once instead of bouncing per device.
+#
+# Partitions resolve via /dev/mapper (the pmOS initramfs maps the dynamic
+# partitions in super on every boot), then /dev/disk/by-partlabel (raw
+# partitions like dsp_a), then one make-dynpart-mappings fallback run;
+# mappings that run creates are removed again at the end.
+#
+# --if-device: exit 0 quietly when no stock super partition is visible
+#   (apk post-install scripts run inside build/CI chroots too; on images
+#   built there the first-boot service does the real extraction).
+# --refresh: re-derive every mbn dest even if it exists, replacing it only
+#   with an image that verifies (a failed refresh leaves the old file). For
+#   the consumer's post-install/post-upgrade: a fresh 'apk add' gets its
+#   trustlet without a reboot, and a trustlet that was hand-placed or pinned
+#   to another build is replaced by the active slot's on the next upgrade.
+#   file dests are still left alone: re-copying the acf would rebind the
+#   sound card on every upgrade for nothing.
+
+MANIFEST_DIR=/usr/share/fp6-vendor-blobs/manifest.d
+SUPER=/dev/disk/by-partlabel/super
+MNT=
+MNT_PART=
+CREATED=
+TRIED_MAPPING=
+IF_DEVICE=
+REFRESH=
+# "a" or "b" on an A/B device (androidboot.slot_suffix=_a), else empty
+ACTIVE_SLOT=$(tr ' ' '\n' </proc/cmdline 2>/dev/null | sed -n 's/^androidboot\.slot_suffix=_\([ab]\)$/\1/p' | head -n1)
+
+log() { echo "fp6-vendor-blobs: $*"; }
+
+unmount_cur() {
+	if [ -n "$MNT" ]; then
+		umount "$MNT" 2>/dev/null
+		rmdir "$MNT" 2>/dev/null
+		MNT= MNT_PART=
+	fi
+}
+
+cleanup() {
+	unmount_cur
+	for name in $CREATED; do
+		dmsetup remove "$name" 2>/dev/null || true
+	done
+	CREATED=
+}
+
+fail() {
+	echo "fp6-vendor-blobs: ERROR: $*" >&2
+	cleanup
+	exit 1
+}
+
+# resolve a partition name to a block device
+part_dev() {
+	[ -b "/dev/mapper/$1" ] && { echo "/dev/mapper/$1"; return 0; }
+	[ -b "/dev/disk/by-partlabel/$1" ] && { echo "/dev/disk/by-partlabel/$1"; return 0; }
+	if [ -z "$TRIED_MAPPING" ] && [ -b "$SUPER" ]; then
+		TRIED_MAPPING=1
+		before=$(dmsetup ls 2>/dev/null | awk '{print $1}')
+		make-dynpart-mappings "$SUPER" 0 2>/dev/null
+		after=$(dmsetup ls 2>/dev/null | awk '{print $1}')
+		for name in $after; do
+			case " $before " in *" $name "*) ;; *) CREATED="$CREATED $name" ;; esac
+		done
+		[ -n "$CREATED" ] && log "mapped dynamic partitions:$CREATED"
+		[ -b "/dev/mapper/$1" ] && { echo "/dev/mapper/$1"; return 0; }
+	fi
+	return 1
+}
+
+mount_part() {
+	[ "$MNT_PART" = "$1" ] && return 0
+	unmount_cur
+	dev=$(part_dev "$1") || return 1
+	dir=$(mktemp -d /run/fp6-vendor-blobs.XXXXXX) || fail "mktemp failed"
+	# noload succeeds on any ext4 and correctly fails on non-ext4, where
+	# plain ro cannot write anyway (erofs); a dirty ext4 is never replayed
+	if ! mount -o ro,noload "$dev" "$dir" 2>/dev/null && \
+	   ! mount -o ro "$dev" "$dir" 2>/dev/null; then
+		rmdir "$dir" 2>/dev/null
+		return 1
+	fi
+	MNT=$dir
+	MNT_PART=$1
+}
+
+# The listed partitions, space separated, the active slot's first.
+order_parts() { # <partition,...>
+	first= rest=
+	for p in $(echo "$1" | tr ',' ' '); do
+		if [ -n "$ACTIVE_SLOT" ] && [ "${p%_$ACTIVE_SLOT}" != "$p" ]; then
+			first="$first $p"
+		else
+			rest="$rest $p"
+		fi
+	done
+	echo "$first $rest"
+}
+
+# Little-endian scalars out of an ELF header. aarch64 is little endian and so
+# is the image, so od's host order is the right one.
+u64() { od -An -tu8 -j "$2" -N 8 "$1" | tr -d ' '; }
+u16() { od -An -tu2 -j "$2" -N 2 "$1" | tr -d ' '; }
+u8()  { od -An -tu1 -j "$2" -N 1 "$1" | tr -d ' '; }
+hex4() { od -An -tx1 -N 4 "$1" | tr -d ' \n'; }
+fsize() { stat -c %s "$1"; }
+
+# Reassemble <dir>/<name>.mdt + .b0N into a flat image at <out>. Mirrors
+# utilities/ta-analysis/reassemble.py in the fp6 bring-up repo, which is where
+# the format was worked out and where the known-good hash comes from.
+# POSIX sh has no locals, so these names are deliberately distinct from
+# extract_mbn's: reassemble() taking rdir= would rewrite its CALLER's copy to
+# the mount path, and the next partition in the retry loop would then be
+# searched at $MNT/$MNT/...
+reassemble() { # <dir> <name> <out>
+	mdir=$1 mname=$2 mout=$3
+	mdt="$mdir/$mname.mdt"
+	[ -f "$mdt" ] || return 1
+	# Structure first, before anything is written: an ELF64 header whose
+	# program header table fits in the .mdt, and for every segment with
+	# contents a .b0N file of exactly the declared size at a page-aligned
+	# offset. This is the whole verification when the manifest pins no hash;
+	# the loader's own signature check does the rest.
+	[ "$(hex4 "$mdt")" = 7f454c46 ] || { log "$mname.mdt: not an ELF image"; return 1; }
+	[ "$(u8 "$mdt" 4)" = 2 ] || { log "$mname.mdt: not ELF64"; return 1; }
+	phoff=$(u64 "$mdt" 32) phentsize=$(u16 "$mdt" 54) phnum=$(u16 "$mdt" 56)
+	[ -n "$phoff" ] && [ -n "$phentsize" ] && [ -n "$phnum" ] || return 1
+	[ "$phentsize" -eq 56 ] 2>/dev/null || { log "$mname.mdt: phentsize $phentsize"; return 1; }
+	[ "$phnum" -gt 0 ] 2>/dev/null && [ "$phnum" -le 64 ] || { log "$mname.mdt: phnum $phnum"; return 1; }
+	[ "$(fsize "$mdt")" -ge $((phoff + phnum * phentsize)) ] || { log "$mname.mdt: shorter than its program header table"; return 1; }
+
+	# The image is as long as the furthest segment reaches; everything no
+	# segment covers stays zero.
+	total=0 i=0
+	while [ "$i" -lt "$phnum" ]; do
+		o=$((phoff + i * phentsize))
+		pfsz=$(u64 "$mdt" $((o + 32)))
+		if [ "$pfsz" -gt 0 ]; then
+			poff=$(u64 "$mdt" $((o + 8)))
+			seg=$(printf '%s/%s.b%02d' "$mdir" "$mname" "$i")
+			[ -f "$seg" ] || { log "$mname: segment $i missing"; return 1; }
+			[ "$(fsize "$seg")" -eq "$pfsz" ] || { log "$mname: segment $i is $(fsize "$seg") bytes, header says $pfsz"; return 1; }
+			# dd seeks in whole blocks, which is only correct because
+			# every p_offset in these images is page aligned. Refuse
+			# rather than silently misplace a segment if that changes.
+			[ $((poff % 4096)) -eq 0 ] || { log "$mname: segment $i offset $poff is not page aligned"; return 1; }
+			[ $((poff + pfsz)) -gt "$total" ] && total=$((poff + pfsz))
+		fi
+		i=$((i + 1))
+	done
+	[ "$total" -gt 0 ] || { log "$mname: no segment has contents"; return 1; }
+	# an order of magnitude above any TA; a garbage p_offset would otherwise
+	# make a sparse multi-GiB file that then gets hashed
+	[ "$total" -le $((64 * 1024 * 1024)) ] || { log "$mname: image would be $total bytes"; return 1; }
+	: > "$mout" || return 1
+	truncate -s "$total" "$mout" || return 1
+
+	i=0
+	while [ "$i" -lt "$phnum" ]; do
+		o=$((phoff + i * phentsize))
+		pfsz=$(u64 "$mdt" $((o + 32)))
+		if [ "$pfsz" -gt 0 ]; then
+			poff=$(u64 "$mdt" $((o + 8)))
+			seg=$(printf '%s/%s.b%02d' "$mdir" "$mname" "$i")
+			dd if="$seg" of="$mout" bs=4096 seek=$((poff / 4096)) \
+				conv=notrunc 2>/dev/null || return 1
+		fi
+		i=$((i + 1))
+	done
+	return 0
+}
+
+extract_mbn() { # <partition,...> <dir-in-partition> <name> <dest> <sha256|->
+	parts=$1 rdir=$2 rname=$3 dest=$4 want=$5
+	for part in $(order_parts "$parts"); do
+		mount_part "$part" || { log "$part: not mountable, trying next"; continue; }
+		[ -f "$MNT/$rdir/$rname.mdt" ] || { log "$part: no $rdir/$rname.mdt, trying next"; continue; }
+		tmp="$dest.fp6-extract.$$"
+		mkdir -p "${dest%/*}" || fail "cannot create ${dest%/*}"
+		if ! reassemble "$MNT/$rdir" "$rname" "$tmp"; then
+			rm -f "$tmp"
+			log "$part: reassembling $rname failed, trying next"
+			continue
+		fi
+		got=$(sha256sum "$tmp" | awk '{print $1}')
+		if [ "$want" != - ] && [ "$got" != "$want" ]; then
+			rm -f "$tmp"
+			log "$part:$rdir/$rname sha256 $got != expected, trying next"
+			continue
+		fi
+		chmod 644 "$tmp" && mv "$tmp" "$dest" || { rm -f "$tmp"; fail "installing $dest failed"; }
+		log "reassembled $part:$rdir/$rname.{mdt,b0N} -> $dest (sha256 $got)"
+		return 0
+	done
+	kept=
+	[ -e "$dest" ] && kept=" (the existing file is left in place)"
+	if [ "$want" = - ]; then
+		fail "no listed partition ($parts) yields a well-formed $rname - $dest NOT installed$kept"
+	fi
+	fail "no listed partition ($parts) yields $rname with sha256 $want - $dest NOT installed$kept"
+}
+
+extract() { # <partition,...> <path-in-partition> <dest> <sha256>
+	parts=$1 src=$2 dest=$3 want=$4
+	for part in $(order_parts "$parts"); do
+		mount_part "$part" || { log "$part: not mountable, trying next"; continue; }
+		[ -f "$MNT/$src" ] || { log "$part: no $src, trying next"; continue; }
+		tmp="$dest.fp6-extract.$$"
+		mkdir -p "${dest%/*}" || fail "cannot create ${dest%/*}"
+		cp "$MNT/$src" "$tmp" || { rm -f "$tmp"; fail "copying $part:$src failed"; }
+		got=$(sha256sum "$tmp" | awk '{print $1}')
+		if [ "$got" != "$want" ]; then
+			rm -f "$tmp"
+			log "$part:$src sha256 $got != expected, trying next"
+			continue
+		fi
+		chmod 644 "$tmp" && mv "$tmp" "$dest" || { rm -f "$tmp"; fail "installing $dest failed"; }
+		log "extracted $part:$src -> $dest"
+		return 0
+	done
+	fail "no listed partition ($parts) yields $src with sha256 $want - $dest NOT installed"
+}
+
+rebind_all() { # <bus/device ...>
+	for rb in $1; do
+		bus=${rb%%/*} dev=${rb#*/}
+		[ -e "/sys/bus/$bus/devices/$dev/driver" ] || continue
+		if echo "$dev" > "/sys/bus/$bus/devices/$dev/driver/unbind" 2>/dev/null; then
+			log "unbound $bus $dev"
+		fi
+	done
+	for rb in $1; do
+		bus=${rb%%/*} dev=${rb#*/}
+		if [ ! -e "/sys/bus/$bus/devices/$dev" ]; then
+			log "rebind: no $dev on bus $bus (yet) - its driver will probe on its own"
+		elif echo "$dev" > "/sys/bus/$bus/drivers_probe" 2>/dev/null; then
+			log "re-probed $bus $dev"
+		else
+			log "rebind: drivers_probe of $dev failed (driver not loaded yet?)"
+		fi
+	done
+}
+
+for arg in "$@"; do
+	case "$arg" in
+	--if-device) IF_DEVICE=1 ;;
+	--refresh) REFRESH=1 ;;
+	*) fail "unknown option '$arg'" ;;
+	esac
+done
+if [ -n "$IF_DEVICE" ] && [ ! -b "$SUPER" ]; then
+	log "no stock super partition visible (build chroot?), nothing to do"
+	exit 0
+fi
+
+[ -d "$MANIFEST_DIR" ] || exit 0
+
+# fast path for every boot after the first: all dests already present
+missing=
+for f in "$MANIFEST_DIR"/*.manifest; do
+	[ -e "$f" ] || continue
+	while read -r kind a b c d e; do
+		case "$kind" in
+		file) [ -e "$c" ] || missing=1 ;;
+		mbn)  [ -e "$d" ] && [ -z "$REFRESH" ] || missing=1 ;;
+		esac
+	done < "$f"
+done
+[ -z "$missing" ] && exit 0
+[ -n "$ACTIVE_SLOT" ] && log "active slot $ACTIVE_SLOT"
+
+for f in "$MANIFEST_DIR"/*.manifest; do
+	[ -e "$f" ] || continue
+	extracted=
+	rebinds=
+	while read -r kind a b c d e; do
+		case "$kind" in
+		''|'#'*) ;;
+		file)
+			[ -n "$d" ] || fail "$f: malformed file line"
+			[ -e "$c" ] && continue
+			extract "$a" "$b" "$c" "$d" </dev/null
+			extracted=1
+			;;
+		mbn)
+			[ -n "$e" ] || fail "$f: malformed mbn line"
+			[ -e "$d" ] && [ -z "$REFRESH" ] && continue
+			extract_mbn "$a" "$b" "$c" "$d" "$e" </dev/null
+			extracted=1
+			;;
+		rebind)
+			[ -n "$b" ] || fail "$f: malformed rebind line"
+			rebinds="$rebinds $a/$b"
+			;;
+		*) fail "$f: unknown directive '$kind'" ;;
+		esac
+	done < "$f"
+	if [ -n "$extracted" ] && [ -n "$rebinds" ]; then
+		rebind_all "$rebinds" </dev/null
+	fi
+done
+
+cleanup
+exit 0

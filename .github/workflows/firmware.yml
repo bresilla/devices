@@ -1,0 +1,57 @@
+name: firmware
+
+on:
+  push:
+    branches: [main]
+    paths: ["**/firmware/**", "flake.nix", "flake.lock", ".github/workflows/firmware.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: firmware
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      # Unchanged firmware downloads from the cache instead of building again.
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-substituters = https://cache.bresilla.com/firmwares
+            extra-trusted-public-keys = firmwares:qw8oRExHp2piySwHqyArmcZ8OoWWb4QAgutbrtfM0wQ=
+      # Machines read pins.json; record whatever was built.
+      - name: Build all firmware
+        id: build
+        run: |
+          names=$(nix eval --raw .#packages.aarch64-linux \
+            --apply 'p: builtins.concatStringsSep " " (builtins.attrNames p)')
+          echo '{}' > pins.next
+          for name in $names; do
+            out=$(nix build --no-link --print-out-paths ".#$name")
+            echo "$out" >> "$RUNNER_TEMP/paths"
+            jq --arg n "$name" --arg p "$out" '.[$n] = $p' pins.next > pins.tmp && mv pins.tmp pins.next
+          done
+          { echo 'paths<<EOF'; cat "$RUNNER_TEMP/paths"; echo EOF; } >> "$GITHUB_OUTPUT"
+      - uses: bresilla/nixos/.github/actions/attic-push@main
+        with:
+          cache: firmwares
+          paths: ${{ steps.build.outputs.paths }}
+          attic-token: ${{ secrets.ATTIC_TOKEN }}
+          wireguard-key: ${{ secrets.WIREGUARD_KEY_ARM }}
+          wireguard-address: 10.77.0.5
+      # Pins land only after the push, so a device never sees an unuploaded path.
+      - name: Commit pins
+        run: |
+          jq '{"aarch64-linux": .}' pins.next > pins.json
+          rm pins.next
+          git add pins.json
+          git diff --cached --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(firmware): update pins"
+          git pull --rebase && git push
