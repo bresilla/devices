@@ -31,6 +31,9 @@
         raspberrypi-wireless-firmware = pkgs.callPackage ./raspberrypi-pi5/firmware/wireless.nix { };
         device-recipes = pkgs.runCommand "device-recipes" { } ''
           mkdir -p "$out/fairphone-fp6" "$out/ayn-odin3" "$out/lenovo-pgx" "$out/lenovo-t480"
+          mkdir -p "$out/aetina-orinnx/firmware"
+          cp -r ${./aetina-orinnx/firmware/r36} "$out/aetina-orinnx/firmware/r36"
+          cp -r ${./aetina-orinnx/kernel} "$out/aetina-orinnx/kernel"
           cp -r ${./fairphone-fp6/kernel} "$out/fairphone-fp6/kernel"
           cp -r ${./fairphone-fp6/software} "$out/fairphone-fp6/software"
           cp -r ${./ayn-odin3/kernel} "$out/ayn-odin3/kernel"

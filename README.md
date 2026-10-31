@@ -9,6 +9,7 @@ Each `<manufacturer-product>/` holds what anyone with that hardware would want:
 - `firmware/`: what the hardware itself loads, however it is made.
 - `kernel/`: the kernel recipe, with its own pinned nixpkgs.
 - `software/`: NixOS modules for that hardware.
+- `reference/`: what a stock install looked like, kept for reference; nothing builds from it.
 
 ## How it reaches a machine
 
