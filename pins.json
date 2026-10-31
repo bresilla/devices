@@ -4,7 +4,7 @@
     "fp6-fingerprint-firmware": "/nix/store/j2hsj01dpyzsznr8h49b9527vdwsy2da-fp6-fingerprint-firmware",
     "fp6-firmware": "/nix/store/kqsppqkjv86bhlfjb6pkbwrd8694i4jk-fp6-firmware-e58a5be",
     "fp6-sensor-firmware": "/nix/store/2hfs4b1c5m1hr5fp5b3hjhkdnh90c7kf-fp6-sensor-firmware",
-    "kernel-recipes": "/nix/store/c4w9jgzs0rrd1w2k4kndq961p4p1bnl1-kernel-recipes",
+    "kernel-recipes": "/nix/store/sxk1pi6pis0sp4j8x4z3m2i1chwv22wq-kernel-recipes",
     "nvidia-gsp-firmware": "/nix/store/izq0lpmjd69j1lysi4mcsgg2f30v1g0f-nvidia-gsp-firmware-595.104.02",
     "nvidia-l4t-firmware": "/nix/store/jidq3ssxyvxj5f823095d6lby8spns65-nvidia-l4t-firmware-39.2.1-20260806224157",
     "odin3-firmware": "/nix/store/1iq1jy0r74w8b8bjxccbyxly1n177h3f-odin3-firmware",
