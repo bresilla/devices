@@ -1,0 +1,10 @@
+{
+  "aarch64-linux": {
+    "fp6-audio-firmware": "/nix/store/b1aw27pczig5llvx97ylkbkx05k05giy-fp6-audio-firmware",
+    "fp6-fingerprint-firmware": "/nix/store/j2hsj01dpyzsznr8h49b9527vdwsy2da-fp6-fingerprint-firmware",
+    "fp6-firmware": "/nix/store/bk0lkfdf1hk3igm576qhq0sx02296bdl-fp6-firmware-e58a5be",
+    "fp6-sensor-firmware": "/nix/store/2hfs4b1c5m1hr5fp5b3hjhkdnh90c7kf-fp6-sensor-firmware",
+    "nvidia-gsp-firmware": "/nix/store/izq0lpmjd69j1lysi4mcsgg2f30v1g0f-nvidia-gsp-firmware-595.104.02",
+    "odin3-firmware": "/nix/store/1iq1jy0r74w8b8bjxccbyxly1n177h3f-odin3-firmware"
+  }
+}
