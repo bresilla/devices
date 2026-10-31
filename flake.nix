@@ -45,13 +45,6 @@
             mkdir -p "$out/aetina-orinnx/firmware"
             cp -r ${./aetina-orinnx/firmware/r36} "$out/aetina-orinnx/firmware/r36"
           '';
-        # Machines not yet updated still read this name.
-        kernel-recipes = pkgs.runCommand "kernel-recipes" { } ''
-          mkdir -p "$out/fairphone-fp6" "$out/ayn-odin3" "$out/lenovo-pgx"
-          cp -r ${./fairphone-fp6/kernel} "$out/fairphone-fp6/kernel"
-          cp -r ${./ayn-odin3/kernel} "$out/ayn-odin3/kernel"
-          cp -r ${./lenovo-pgx/kernel} "$out/lenovo-pgx/kernel"
-        '';
       };
 
       # Every output a machine downloads from /kernels; always cross-built on tron.
