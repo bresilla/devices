@@ -3,7 +3,7 @@ name: firmware
 on:
   push:
     branches: [main]
-    paths: ["**/firmware/**", "**/kernel/**", "flake.nix", "flake.lock", ".github/workflows/firmware.yml"]
+    paths: ["**/firmware/**", "**/kernel/**", "**/software/**", "flake.nix", "flake.lock", ".github/workflows/firmware.yml"]
   workflow_dispatch:
 
 permissions:

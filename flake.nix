@@ -2,8 +2,10 @@
   description = "Firmware and kernels for any device, served from cache.bresilla.com";
 
   # <device>/firmware/: what the hardware itself loads, however it is made.
-  # <device>/kernel/: a kernel's recipe. Machines read it through the kernel-recipes
-  # pin, which CI publishes only once every kernel below is in /kernels.
+  # <device>/kernel/: a kernel's recipe.
+  # <device>/software/: hardware modules anyone with that device would want.
+  # Machines read both through the device-recipes pin, which CI publishes only once
+  # every kernel below is in /kernels.
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
@@ -27,6 +29,16 @@
         r8168-firmware = pkgs.callPackage ./aetina-orinnx/firmware/r8168.nix { };
         raspberrypi-firmware = pkgs.callPackage ./raspberrypi-pi5/firmware { };
         raspberrypi-wireless-firmware = pkgs.callPackage ./raspberrypi-pi5/firmware/wireless.nix { };
+        device-recipes = pkgs.runCommand "device-recipes" { } ''
+          mkdir -p "$out/fairphone-fp6" "$out/ayn-odin3" "$out/lenovo-pgx" "$out/lenovo-t480"
+          cp -r ${./fairphone-fp6/kernel} "$out/fairphone-fp6/kernel"
+          cp -r ${./fairphone-fp6/software} "$out/fairphone-fp6/software"
+          cp -r ${./ayn-odin3/kernel} "$out/ayn-odin3/kernel"
+          cp -r ${./ayn-odin3/software} "$out/ayn-odin3/software"
+          cp -r ${./lenovo-pgx/kernel} "$out/lenovo-pgx/kernel"
+          cp -r ${./lenovo-t480/software} "$out/lenovo-t480/software"
+        '';
+        # Machines not yet updated still read this name.
         kernel-recipes = pkgs.runCommand "kernel-recipes" { } ''
           mkdir -p "$out/fairphone-fp6" "$out/ayn-odin3" "$out/lenovo-pgx"
           cp -r ${./fairphone-fp6/kernel} "$out/fairphone-fp6/kernel"
