@@ -64,7 +64,13 @@ jobs:
       # Pins land only after the push, so a device never sees an unuploaded path.
       - name: Commit pins
         run: |
-          jq '{"aarch64-linux": .}' pins.next > pins.json
+          # Kernels are recorded for the cache page; machines read only their system's group.
+          kernels=$(nix eval --json .#kernels --apply 'k: builtins.listToAttrs (builtins.concatLists
+            (builtins.attrValues (builtins.mapAttrs (n: v: [
+              { name = n; value = v.outPath; }
+              { name = "${n}-modules"; value = v.modules.outPath; }
+            ]) k)))')
+          jq --argjson kernels "$kernels" '{"aarch64-linux": ., kernels: $kernels}' pins.next > pins.json
           rm pins.next
           git add pins.json
           git diff --cached --quiet && exit 0
