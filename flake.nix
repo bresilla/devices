@@ -22,6 +22,7 @@
         odin3-firmware = pkgs.callPackage ./ayn-odin3/firmware { };
         nvidia-gsp-firmware = pkgs.callPackage ./lenovo-pgx/firmware { };
         nvidia-l4t-firmware = pkgs.callPackage ./aetina-orinnx/firmware { };
+        r8168-firmware = pkgs.callPackage ./aetina-orinnx/firmware/r8168.nix { };
         raspberrypi-firmware = pkgs.callPackage ./raspberrypi-pi5/firmware { };
         raspberrypi-wireless-firmware = pkgs.callPackage ./raspberrypi-pi5/firmware/wireless.nix { };
       };
