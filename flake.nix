@@ -29,18 +29,22 @@
         r8168-firmware = pkgs.callPackage ./aetina-orinnx/firmware/r8168.nix { };
         raspberrypi-firmware = pkgs.callPackage ./raspberrypi-pi5/firmware { };
         raspberrypi-wireless-firmware = pkgs.callPackage ./raspberrypi-pi5/firmware/wireless.nix { };
-        device-recipes = pkgs.runCommand "device-recipes" { } ''
-          mkdir -p "$out/fairphone-fp6" "$out/ayn-odin3" "$out/lenovo-pgx" "$out/lenovo-t480"
-          mkdir -p "$out/aetina-orinnx/firmware"
-          cp -r ${./aetina-orinnx/firmware/r36} "$out/aetina-orinnx/firmware/r36"
-          cp -r ${./aetina-orinnx/kernel} "$out/aetina-orinnx/kernel"
-          cp -r ${./fairphone-fp6/kernel} "$out/fairphone-fp6/kernel"
-          cp -r ${./fairphone-fp6/software} "$out/fairphone-fp6/software"
-          cp -r ${./ayn-odin3/kernel} "$out/ayn-odin3/kernel"
-          cp -r ${./ayn-odin3/software} "$out/ayn-odin3/software"
-          cp -r ${./lenovo-pgx/kernel} "$out/lenovo-pgx/kernel"
-          cp -r ${./lenovo-t480/software} "$out/lenovo-t480/software"
-        '';
+        # Every device's kernel/ and software/; firmware stays out, as its blobs are large.
+        device-recipes =
+          let
+            inherit (pkgs) lib;
+            devices = builtins.attrNames (lib.filterAttrs (name: type: type == "directory" && !lib.hasPrefix "." name) (builtins.readDir ./.));
+            copy = device: part:
+              lib.optionalString (builtins.pathExists (./. + "/${device}/${part}")) ''
+                mkdir -p "$out/${device}"
+                cp -r ${./. + "/${device}/${part}"} "$out/${device}/${part}"
+              '';
+          in
+          pkgs.runCommand "device-recipes" { } ''
+            ${lib.concatMapStrings (device: copy device "kernel" + copy device "software") devices}
+            mkdir -p "$out/aetina-orinnx/firmware"
+            cp -r ${./aetina-orinnx/firmware/r36} "$out/aetina-orinnx/firmware/r36"
+          '';
         # Machines not yet updated still read this name.
         kernel-recipes = pkgs.runCommand "kernel-recipes" { } ''
           mkdir -p "$out/fairphone-fp6" "$out/ayn-odin3" "$out/lenovo-pgx"
