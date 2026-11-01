@@ -1,6 +1,6 @@
 {
   "aarch64-linux": {
-    "device-recipes": "/nix/store/rnj7kacg9wps80slxjaynnlg8hb3r871-device-recipes",
+    "device-recipes": "/nix/store/mzbk7ly91z8dflazp3skvw66ni1fqs86-device-recipes",
     "fp6-audio-firmware": "/nix/store/b1aw27pczig5llvx97ylkbkx05k05giy-fp6-audio-firmware",
     "fp6-fingerprint-firmware": "/nix/store/j2hsj01dpyzsznr8h49b9527vdwsy2da-fp6-fingerprint-firmware",
     "fp6-firmware": "/nix/store/kqsppqkjv86bhlfjb6pkbwrd8694i4jk-fp6-firmware-e58a5be",
