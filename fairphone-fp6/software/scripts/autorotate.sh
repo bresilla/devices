@@ -3,7 +3,7 @@
 
 rotate() {
   local transform=$1 output=${2-DSI-1} reply
-  # Query inside Hyprland so Morf's current scale and monitor position survive.
+  # Query inside Hyprland so eva's current scale and monitor position survive.
   reply=$(hyprctl dispatch "function()
     local m = hl.get_monitor('DSI-1')
     assert(m, 'FP6 display is unavailable')

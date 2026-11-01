@@ -79,7 +79,7 @@ in
     serviceConfig = {
       Type = "dbus";
       BusName = "net.reactivated.Fprint";
-      # Morf's lock screen keeps a verify open for as long as it is up, even
+      # eva's lock screen keeps a verify open for as long as it is up, even
       # with the display off. Each frame is ~170 ms of QTEE work, so the
       # default 40 ms gap held a core at ~75%; 400 ms brings it to ~30%.
       # Edge wake still catches a landing finger during the gap.
@@ -94,14 +94,14 @@ in
     };
   };
 
-  # Morf listens on this separate PAM stack alongside its password prompt.
+  # eva's lock listens on this separate PAM stack alongside its password prompt.
   # A rejected finger must not fall through to a password attempt or affect
   # password failure counters. Other authentication services keep their policy.
-  security.pam.services.morf-lock-finger = lib.mkIf config.programs.eva.enable {
+  security.pam.services.eva-lock-finger = lib.mkIf config.programs.eva.enable {
     text = ''
       auth sufficient ${clients}/lib/security/pam_fprintd.so
       auth required ${config.security.pam.package}/lib/security/pam_deny.so
-      account include morf-lock
+      account include eva-lock
     '';
   };
 }
