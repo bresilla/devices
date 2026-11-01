@@ -1,6 +1,6 @@
 {
   "aarch64-linux": {
-    "device-recipes": "/nix/store/mzbk7ly91z8dflazp3skvw66ni1fqs86-device-recipes",
+    "device-recipes": "/nix/store/r8zjd907clinm1r797ycjlwafz39xyyk-device-recipes",
     "fp6-audio-firmware": "/nix/store/b1aw27pczig5llvx97ylkbkx05k05giy-fp6-audio-firmware",
     "fp6-fingerprint-firmware": "/nix/store/j2hsj01dpyzsznr8h49b9527vdwsy2da-fp6-fingerprint-firmware",
     "fp6-firmware": "/nix/store/kqsppqkjv86bhlfjb6pkbwrd8694i4jk-fp6-firmware-e58a5be",
@@ -10,7 +10,9 @@
     "odin3-firmware": "/nix/store/1iq1jy0r74w8b8bjxccbyxly1n177h3f-odin3-firmware",
     "r8168-firmware": "/nix/store/a3g6ij0cvi9fzzfgyifx1av8k78bhrd2-r8168-firmware",
     "raspberrypi-firmware": "/nix/store/8ysyz6ajda23n8s4r2wv6l7q9iw1l381-raspberrypi-firmware-20260915",
-    "raspberrypi-wireless-firmware": "/nix/store/nzh51pj855vnirswvdysdvv5zd3g0il8-raspberrypi-wireless-firmware-2026-03-21"
+    "raspberrypi-wireless-firmware": "/nix/store/nzh51pj855vnirswvdysdvv5zd3g0il8-raspberrypi-wireless-firmware-2026-03-21",
+    "tb321fu-firmware": "/nix/store/myrja3ah8cr9387gziqnkrmh9srvzv14-tb321fu-firmware",
+    "tb321fu-loader": "/nix/store/i1jrmww3lzwrd847q368iy5nzhb9l8b2-tb321fu-loader"
   },
   "kernels": {
     "fp6": "/nix/store/pdkixwprxrp9ny7y1frndg0d0jfkm8y8-linux-aarch64-unknown-linux-gnu-7.2.0",
@@ -18,6 +20,8 @@
     "odin3": "/nix/store/awpgri6zpsq7zvk5w208bajnh0972qqw-linux-aarch64-unknown-linux-gnu-7.2.6",
     "odin3-modules": "/nix/store/mv8p4yi9vsa50kqq0pg1fg67vvg9mzmq-linux-aarch64-unknown-linux-gnu-7.2.6-modules",
     "spark": "/nix/store/br5s8kqyh5p49r3i0fydv795amrpdp95-linux-aarch64-unknown-linux-gnu-7.0.14-nvidia",
-    "spark-modules": "/nix/store/vcqyg4vppnkz5dlma0bhbvx8a5vkg6s0-linux-aarch64-unknown-linux-gnu-7.0.14-nvidia-modules"
+    "spark-modules": "/nix/store/vcqyg4vppnkz5dlma0bhbvx8a5vkg6s0-linux-aarch64-unknown-linux-gnu-7.0.14-nvidia-modules",
+    "tb321fu": "/nix/store/0h3zpc3884asrqc0i6fgg2g1rkd3f0b7-linux-aarch64-unknown-linux-gnu-7.2.6",
+    "tb321fu-modules": "/nix/store/0k0w66fyxzxcd5kcyphkd7c4ziy5981v-linux-aarch64-unknown-linux-gnu-7.2.6-modules"
   }
 }
