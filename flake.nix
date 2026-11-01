@@ -24,6 +24,8 @@
         fp6-sensor-firmware = pkgs.callPackage ./fairphone-fp6/firmware/sensors.nix { };
         fp6-fingerprint-firmware = pkgs.callPackage ./fairphone-fp6/firmware/fingerprint { };
         odin3-firmware = pkgs.callPackage ./ayn-odin3/firmware { };
+        tb321fu-firmware = pkgs.callPackage ./lenovo-tb321fu/firmware { };
+        tb321fu-loader = pkgs.callPackage ./lenovo-tb321fu/firmware/loader.nix { };
         nvidia-gsp-firmware = pkgs.callPackage ./lenovo-pgx/firmware { };
         nvidia-l4t-firmware = pkgs.callPackage ./aetina-orinnx/firmware { };
         r8168-firmware = pkgs.callPackage ./aetina-orinnx/firmware/r8168.nix { };
@@ -53,6 +55,7 @@
           buildSystem = "x86_64-linux";
           fp6 = import ./fairphone-fp6/kernel { inherit buildSystem; };
           odin3 = import ./ayn-odin3/kernel { inherit buildSystem; };
+          tb321fu = import ./lenovo-tb321fu/kernel { inherit buildSystem; };
           spark = import ./lenovo-pgx/kernel {
             inherit buildSystem;
             dgxSpark = import ./lenovo-pgx/kernel/dgx-spark.nix;
@@ -61,6 +64,7 @@
         {
           fp6 = fp6.kernel;
           odin3 = odin3.kernel;
+          tb321fu = tb321fu.kernel;
           spark = spark.kernel;
         };
 
