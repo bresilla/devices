@@ -31,6 +31,13 @@ Neither cache is pruned; old kernels stay until removed by hand.
    test the image with `fastboot boot` first.
 4. Push.
 
+To build and publish only the T480 kernel, run `make kernels KERNELS=t480`.
+Run it on core, which holds the Attic login; tron does the build. The destination
+defaults to `home:kernels` and can be changed with `ATTIC_CACHE=server:kernels`.
+Its pinned NixOS kernel enables the ThinkPad driver facilities needed to bypass
+coreboot's false master-radio block; the hardware module supplies the switch
+parameters. Normal host updates reuse the cached kernel and modules.
+
 ## Licences
 
 The firmware under `firmware/` belongs to its vendors. Recipes and modules here are

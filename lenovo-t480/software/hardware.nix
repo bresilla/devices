@@ -14,6 +14,13 @@
     "thinkpad_acpi.force_load=1"
   ];
   boot.kernelModules = [ "thinkpad_acpi" ];
+  # Built once on tron and published to /kernels, independently of host updates.
+  boot.kernelPackages = pkgs.linuxPackagesFor (import ../kernel).kernel;
+  # Coreboot reports a disabled master radio switch on this hardware. Preserve
+  # ThinkPad hotkeys/battery controls while bypassing the false hard block.
+  boot.extraModprobeConfig = ''
+    options thinkpad_acpi dbg_wlswemul=1 wlsw_state=1
+  '';
 
   # With coreboot, loading thinkpad_acpi can soft-block Wi-Fi.
   systemd.services.thinkpad-wifi-unblock = {
