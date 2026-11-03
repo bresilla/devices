@@ -1,6 +1,6 @@
 {
   "aarch64-linux": {
-    "device-recipes": "/nix/store/qxs6x60n83qajwx4ri1r0jk1kxg1g68b-device-recipes",
+    "device-recipes": "/nix/store/1q5py5jrd4sjkfrca9vr452ki02cvavv-device-recipes",
     "fp6-audio-firmware": "/nix/store/b1aw27pczig5llvx97ylkbkx05k05giy-fp6-audio-firmware",
     "fp6-fingerprint-firmware": "/nix/store/j2hsj01dpyzsznr8h49b9527vdwsy2da-fp6-fingerprint-firmware",
     "fp6-firmware": "/nix/store/kqsppqkjv86bhlfjb6pkbwrd8694i4jk-fp6-firmware-e58a5be",
@@ -23,8 +23,8 @@
     "spark-modules": "/nix/store/vcqyg4vppnkz5dlma0bhbvx8a5vkg6s0-linux-aarch64-unknown-linux-gnu-7.0.14-nvidia-modules",
     "surface": "/nix/store/g87v7qprgfa6zhifjlsi2p8zr8i989yk-linux-7.3.1",
     "surface-modules": "/nix/store/i83iazxgj85wa9sabk5mric5hskmzwhi-linux-7.3.1-modules",
-    "t480": "/nix/store/7w7vk489y3a5yn6kam2k24risblxw09d-linux-6.18.57",
-    "t480-modules": "/nix/store/4hhqabcv1pf20gxjrh8y2cwpq658vg22-linux-6.18.57-modules",
+    "t480": "/nix/store/4588yc94ig96w4wir5wgz8s707vcpq3x-linux-7.3",
+    "t480-modules": "/nix/store/s4z53wxik4g9kf8bid7kllfixd2w3i13-linux-7.3-modules",
     "tb321fu": "/nix/store/0h3zpc3884asrqc0i6fgg2g1rkd3f0b7-linux-aarch64-unknown-linux-gnu-7.2.6",
     "tb321fu-modules": "/nix/store/0k0w66fyxzxcd5kcyphkd7c4ziy5981v-linux-aarch64-unknown-linux-gnu-7.2.6-modules"
   }
