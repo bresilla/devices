@@ -67,6 +67,7 @@
           tb321fu = tb321fu.kernel;
           spark = spark.kernel;
           t480 = (import ./lenovo-t480/kernel).kernel;
+          surface = (import ./microsoft-surfacepro5/kernel).kernel;
         };
 
       # What else a kernel's machine downloads from /kernels.
@@ -77,7 +78,11 @@
             dgxSpark = import ./lenovo-pgx/kernel/dgx-spark.nix;
           };
         in
-        [ spark.kernel.configfile (import ./lenovo-t480/kernel).kernel.configfile ];
+        [
+          spark.kernel.configfile
+          (import ./lenovo-t480/kernel).kernel.configfile
+          (import ./microsoft-surfacepro5/kernel).kernel.configfile
+        ];
 
       # NVIDIA's driver for those kernels. /kernels holds kernels only, so these live in
       # /firmwares; unpinned and kept there forever, like the rest of that cache.
