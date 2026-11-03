@@ -3,13 +3,14 @@
 let
   nixpkgsSrc = builtins.fetchGit {
     url = "https://github.com/NixOS/nixpkgs";
-    rev = "1f607aa79b6356ed45d3cd3c8079c196e79efa2c";
+    rev = "885ba4d038f10c3d17d7a92e8c3cc185b99c9158";
     shallow = true;
   };
   system = import (nixpkgsSrc + "/nixos/lib/eval-config.nix") {
     system = "x86_64-linux";
     modules = [
-      ({ lib, ... }: {
+      ({ lib, pkgs, ... }: {
+        boot.kernelPackages = pkgs.linuxPackages_7_3;
         boot.kernelPatches = [
           {
             name = "thinkpad-coreboot-radio-workaround";
