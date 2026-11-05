@@ -33,6 +33,38 @@ Written 2026-11-01, before the tablet arrived. Nothing here has run on real hard
    the logo, restart and pick **NixOS (other panel)**. On a CSOT unit, keep that with
    `sudo touch /boot/panel-csot` and a switch.
 
+## What happened on 2026-11-05
+
+- The unit: TB321FU_EEA, 12 GB + 256 GB, serial `HA2AJN4H`, ZUI 17.5.10.272 (ROW),
+  Android 16, bootloader locked. `ro.vendor.display.paneltype` is `1`; which panel that
+  means is unknown, so the first boot decides BOE or CSOT.
+- Developer options: tap **ZUI version** 7 times, not Build number (that one is greyed out).
+- Android was not updated, so the update could not take OEM unlocking away. OEM
+  unlocking is on.
+- Fastboot only appears on one of the tablet's two USB-C ports: the one where Android
+  connects at USB 3 (SuperSpeed). On the other port the bootloader shows its menu but
+  never enumerates. core's USB-C ports saw nothing in either port; nova's USB-A did.
+- `fastboot flash unlock` with the NekoYuzu-generated `sn.img` hung at "Sending" twice,
+  the second time ending in "press any key to shutdown". Nothing was written; the
+  tablet still boots Android. Two suspects, not yet told apart: that bootloader
+  rejects the generic file, or fastboot's bulk transfer stalls over USB 3 (nova logged
+  `error -71`). Other fastboot commands, such as `oem device-info`, work.
+- Lenovo's own file: apply at https://www.zui.com/iunlock (log in with a Lenovo
+  account, tab **Lenovo平板**, serial, e-mail, the number shown as 验证码, tick the
+  risk box, submit). The file then appears at
+  `http://cdn.zui.lenovomm.com/developer/tabletboot/HA2AJN4H/sn.img`, about 30
+  minutes later; no e-mail is needed. The first try got "今日解锁数量已达限额" (daily
+  quota reached). The quota resets at midnight China time, 17:00 in the Netherlands,
+  so submit just after that. One account may unlock three devices a year.
+
+## Next attempt
+
+1. Submit at zui.com/iunlock just after 17:00, then fetch the CDN file.
+2. Unlock through a USB 2.0 hub if there is one, from the tablet's fastboot port:
+   `fastboot flash unlock sn.img`, then `fastboot oem unlock-go`. Run one command at a
+   time.
+3. If it still hangs, the bootloader restarts with Power + Volume Down; nothing is lost.
+
 ## After it boots
 
 - Clone `~/.dot` and write `/etc/nixos`.
