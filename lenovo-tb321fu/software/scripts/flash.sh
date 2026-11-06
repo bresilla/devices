@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
-# Tablet install, run on core with the tablet on USB:
+# Tablet install, run with the tablet on a USB 3 port:
 #   lego-flash.sh unlock sn.img   wipes the tablet and unlocks its bootloader
 #   lego-flash.sh flash           adds Wi-Fi and a password, then flashes NixOS
 set -euo pipefail
-images=/var/tmp/lego-result
-work=/var/tmp/lego
+images=${LEGO_IMAGES:-/var/tmp/lego-result}
+work=${LEGO_WORK:-/var/tmp/lego}
 provision=$(dirname "$(readlink -f "$0")")/provision.sh
 tools=(nix shell nixpkgs#android-tools nixpkgs#openssl nixpkgs#zstd -c)
 
 confirm() {
   read -rp "$1 Type yes to go on: " answer
   [[ $answer == yes ]] || { echo "Stopped."; exit 1; }
+}
+no_autosuspend() {
+  # The bootloader never wakes from USB autosuspend; off until the host reboots.
+  echo -1 | sudo tee /sys/module/usbcore/parameters/autosuspend >/dev/null
 }
 wait_fastboot() {
   echo "Waiting for fastboot; on the tablet hold Volume Down + Power if it isn't there."
@@ -22,6 +26,7 @@ case "${1:-}" in
     file=${2:?usage: lego-flash.sh unlock sn.img}
     [[ -f $file ]] || { echo "No such file: $file"; exit 1; }
     confirm "This wipes the tablet."
+    no_autosuspend
     "${tools[@]}" adb reboot bootloader || true
     wait_fastboot
     "${tools[@]}" fastboot flash unlock "$file"
@@ -31,8 +36,9 @@ case "${1:-}" in
   flash)
     [[ -f $images/boot.img ]] || { echo "No images in $images"; exit 1; }
     confirm "This replaces Android with NixOS."
+    no_autosuspend
     if [[ ! -f $work/userdata.simg ]]; then
-      "${tools[@]}" sudo env "PATH=$PATH" bash "$provision" "$images" "$work" "$USER"
+      "${tools[@]}" sh -c 'sudo env "PATH=$PATH" bash "$@"' _ "$provision" "$images" "$work" "$USER"
     fi
     "${tools[@]}" adb reboot bootloader 2>/dev/null || true
     wait_fastboot

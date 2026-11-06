@@ -22,7 +22,10 @@ in
   };
 
   config = {
-    boot.kernelPackages = pkgs.linuxPackagesFor tb321fu.kernel;
+    # manualConfig kernels lack the efiBootStub feature flag systemd-boot asserts on.
+    boot.kernelPackages = pkgs.linuxPackagesFor (
+      tb321fu.kernel // { features = (tb321fu.kernel.features or { }) // { efiBootStub = true; }; }
+    );
     hardware.firmware = [ (lib.hiPrio firmwares.tb321fu-firmware) ];
     hardware.deviceTree.enable = true;
 

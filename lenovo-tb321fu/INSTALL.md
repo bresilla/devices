@@ -29,9 +29,8 @@ Written 2026-11-01, before the tablet arrived. Nothing here has run on real hard
    ```
 
    `flash` adds core's Wi-Fi and a password, and stops if the bootloader is locked.
-6. First boot: Lenovo logo, a 3-second GRUB menu, NixOS. If the screen stays black after
-   the logo, restart and pick **NixOS (other panel)**. On a CSOT unit, keep that with
-   `sudo touch /boot/panel-csot` and a switch.
+6. First boot: Lenovo logo, the systemd-boot menu, NixOS. If the screen stays black after
+   the logo, restart and pick **NixOS (csot)**.
 
 ## What happened on 2026-11-05
 
@@ -57,13 +56,27 @@ Written 2026-11-01, before the tablet arrived. Nothing here has run on real hard
   quota reached). The quota resets at midnight China time, 17:00 in the Netherlands,
   so submit just after that. One account may unlock three devices a year.
 
-## Next attempt
+## What happened on 2026-11-06
 
-1. Submit at zui.com/iunlock just after 17:00, then fetch the CDN file.
-2. Unlock through a USB 2.0 hub if there is one, from the tablet's fastboot port:
-   `fastboot flash unlock sn.img`, then `fastboot oem unlock-go`. Run one command at a
-   time.
-3. If it still hangs, the bootloader restarts with Power + Volume Down; nothing is lost.
+- The zui.com application went through just after 17:00; the CDN file appeared about
+  5 minutes later. It is a 5386-byte `ANDROID!` image, unlike the generic one.
+- The hangs were Linux USB autosuspend: the host suspends the idle fastboot device
+  after 2 seconds and this bootloader never wakes from it. Any command sent right after
+  the tablet enumerates works; later ones hang at "Sending" or drop off the bus. Fix on
+  the flashing host, until its next reboot:
+  `echo -1 | sudo tee /sys/module/usbcore/parameters/autosuspend`, then re-enter
+  fastboot. With that, every command works at any time.
+- At USB 2 speed (a hub, or USB 3 disabled on the port) the bootloader does not
+  enumerate at all (`error -71`). It needs the direct USB 3 link.
+- `flash unlock` keeps the file only until the bootloader restarts; `oem unlock-go` in
+  a later session answers "unknown command". The unlock went through anyway: the
+  fastboot screen shows `DEVICE STATE - unlocked` and `getvar unlocked` says yes.
+- Provisioning needs about 52 GB free: the unpacked userdata is 26 GB and its sparse
+  image is 26 GB too. nova's `/var/tmp` (32 GB) ran out, so the images were provisioned
+  on core and the sparse files copied to nova's `/nix`.
+- Flashed `boot_a`, `super`, `userdata` (83 seconds), rebooted: NixOS booted on the
+  BOE panel and joined Wi-Fi. systemd-boot 260.5, started from GRUB as a test, booted
+  NixOS with its `devicetree` line as well.
 
 ## After it boots
 
