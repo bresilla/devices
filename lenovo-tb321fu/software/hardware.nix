@@ -34,12 +34,11 @@ in
       availableKernelModules = lib.filter (name: name != "") (
         lib.splitString "\n" (builtins.readFile ../kernel/initrd-modules)
       );
-      extraFirmwarePaths = [
-        "qcom/sm8650/lenovo/tb321fu/adsp.mdt"
-        "qcom/sm8650/lenovo/tb321fu/adsp_dtb.mdt"
-        "qcom/sm8650/lenovo/tb321fu/cdsp.mdt"
-        "qcom/sm8650/lenovo/tb321fu/cdsp_dtb.mdt"
-      ];
+      # The ADSP and CDSP start here and never retry, so every segment must be present;
+      # the ADSP carries the battery, audio and sensors.
+      extraFirmwarePaths = lib.filter (path: path != "") (
+        lib.splitString "\n" (builtins.readFile ./initrd-firmware)
+      );
     };
 
     # Armada's arguments, less what belongs to its btrfs root.

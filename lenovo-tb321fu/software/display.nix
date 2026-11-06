@@ -12,4 +12,11 @@ in
   # The greeter runs its own Hyprland configuration.
   programs.eva.hyprland.extraConfig = landscape;
   programs.eva.greeter.extraConfig = landscape;
+  # Steam sizes its UI from the internal resolution; render it at the panel's own.
+  bresilla.programs.steamArm64.session.gamescopeArgs = [
+    "--force-orientation" "right"
+    "-w" "2560" "-h" "1600"
+  ];
+  # Steam treats the EDID-less panel as an external screen; 2 gives the Deck's 800p layout.
+  bresilla.programs.steamArm64.session.uiScale = "2";
 }
