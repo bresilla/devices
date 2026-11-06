@@ -1,6 +1,6 @@
 {
   "aarch64-linux": {
-    "device-recipes": "/nix/store/1q5py5jrd4sjkfrca9vr452ki02cvavv-device-recipes",
+    "device-recipes": "/nix/store/ph87d918cv86aa1dml026cdfj4wj0mwd-device-recipes",
     "fp6-audio-firmware": "/nix/store/b1aw27pczig5llvx97ylkbkx05k05giy-fp6-audio-firmware",
     "fp6-fingerprint-firmware": "/nix/store/j2hsj01dpyzsznr8h49b9527vdwsy2da-fp6-fingerprint-firmware",
     "fp6-firmware": "/nix/store/kqsppqkjv86bhlfjb6pkbwrd8694i4jk-fp6-firmware-e58a5be",
@@ -12,7 +12,7 @@
     "raspberrypi-firmware": "/nix/store/8ysyz6ajda23n8s4r2wv6l7q9iw1l381-raspberrypi-firmware-20260915",
     "raspberrypi-wireless-firmware": "/nix/store/nzh51pj855vnirswvdysdvv5zd3g0il8-raspberrypi-wireless-firmware-2026-03-21",
     "tb321fu-firmware": "/nix/store/myrja3ah8cr9387gziqnkrmh9srvzv14-tb321fu-firmware",
-    "tb321fu-loader": "/nix/store/i1jrmww3lzwrd847q368iy5nzhb9l8b2-tb321fu-loader"
+    "tb321fu-loader": "/nix/store/dpsyhpz8vv5p57j6a2l71syycb2wvk9s-tb321fu-loader"
   },
   "kernels": {
     "fp6": "/nix/store/pdkixwprxrp9ny7y1frndg0d0jfkm8y8-linux-aarch64-unknown-linux-gnu-7.2.0",
