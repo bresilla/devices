@@ -3,7 +3,7 @@ let
   # The 1080x1920 panel is mounted portrait (Armada: orientation "right");
   # turn it to landscape and keep touch on the same output and rotation.
   landscape = ''
-    hl.monitor({ output = "DSI-1", mode = "preferred", position = "auto", transform = 3 })
+    hl.monitor({ output = "DSI-1", mode = "1080x1920@60", position = "auto", transform = 3 })
     hl.config({ input = { touchdevice = { output = "DSI-1", transform = 3 } } })
   '';
 in
@@ -16,6 +16,8 @@ in
   bresilla.programs.steamArm64.session.gamescopeArgs = [
     "--force-orientation" "right"
     "-w" "1920" "-h" "1080"
+    # 60 Hz rather than the preferred 120 Hz.
+    "-r" "60"
   ];
   # Steam treats the EDID-less panel as an external screen and picks 2.8.
   bresilla.programs.steamArm64.session.uiScale = "1.76";
