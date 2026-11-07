@@ -90,3 +90,25 @@ Written 2026-11-01, before the tablet arrived. Nothing here has run on real hard
 
 Fastboot stays reachable with Volume Down + Power: reflash, or restore Lenovo's stock
 firmware for the TB321FU to get Android back. The bootloader stays unlocked.
+
+## Boot loop into recovery (2026-11-07)
+
+Lenovo's ABL counts boots of slot A and, after 7 that were never marked
+successful, stops starting it: the tablet reboots or lands in recovery and
+systemd-boot never shows. The NixOS config was missing Armada's marker until
+2026-11-07; `software/boot.nix` now sets GPT attribute 54 on `boot_a` on every
+good boot (`tb321fu-mark-boot-successful.service`).
+
+To get it back, nothing is erased:
+
+1. Hold Volume Down + Power until fastboot shows; plug it into a USB 3 port
+   (nova's USB-A).
+2. On that computer:
+
+   ```sh
+   echo -1 | sudo tee /sys/module/usbcore/parameters/autosuspend
+   nix shell nixpkgs#android-tools -c fastboot set_active a
+   nix shell nixpkgs#android-tools -c fastboot reboot
+   ```
+
+`set_active a` resets slot A's retry count and makes it bootable again.
