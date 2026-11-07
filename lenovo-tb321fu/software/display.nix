@@ -18,6 +18,8 @@ in
     "-w" "2560" "-h" "1600"
     # Steam never sets its touch mode here, so touch stays touch instead of a pointer.
     "--default-touch-mode" "4"
+    # The panel prefers 165 Hz; 60 Hz is its lowest mode and costs far less power.
+    "-r" "60"
   ];
   # Steam treats the EDID-less panel as an external screen; 2 gives the Deck's 800p layout.
   bresilla.programs.steamArm64.session.uiScale = "2";
