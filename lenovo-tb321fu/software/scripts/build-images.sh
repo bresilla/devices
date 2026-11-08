@@ -6,7 +6,7 @@ rm -rf "$work"
 git clone -q https://github.com/bresilla/nixos "$work"
 cd "$work"
 cp /etc/nixos/user.nix .
-printf '{ profile = "handheld"; device = "lenovo-tb321fu"; }\n' > machine.nix
+printf '{ profile = "phone"; device = "lenovo-tb321fu"; }\n' > machine.nix
 curl -fsSL https://cache.bresilla.com/-/pins > /var/tmp/lego-pins.json
 sed -i 's/if (( EUID != 0 )) \&\& \[\[ -S \/nix\/var\/nix\/daemon-socket\/socket \]\]; then/if false; then/' shared/installer/cache-binaries.sh
 bash shared/installer/cache-binaries.sh "$work" aarch64-linux /var/tmp/lego-pins.json
