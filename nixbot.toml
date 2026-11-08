@@ -1,0 +1,12 @@
+# build.bresilla.com builds this flake's checks on every push, sends each result to
+# its cache and pins it there, where machines look for kernels and firmware.
+[cache]
+default = "kernels"
+pin = true
+no_pin = ["*-config", "driver-*"]
+
+[cache.rules]
+"*-firmware" = "firmwares"
+"tb321fu-loader" = "firmwares"
+"device-recipes" = "firmwares"
+"driver-*" = "firmwares"

@@ -10,7 +10,7 @@
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
   outputs =
-    { nixpkgs, ... }:
+    { self, nixpkgs, ... }:
     let
       pkgs = import nixpkgs {
         system = "aarch64-linux";
@@ -99,5 +99,28 @@
           spark.nvidiaTools
           spark.driver.persistenced
         ];
+
+      # What build.bresilla.com builds on every push; nixbot.toml says which cache each
+      # goes to. Kernels and what goes with them are cross-built (x86_64); firmware is
+      # aarch64. device-recipes depends on every kernel, so it is built, and pinned,
+      # only once they all are.
+      checks =
+        let
+          lib = nixpkgs.lib;
+          host = nixpkgs.legacyPackages.x86_64-linux;
+          kernels = lib.concatMapAttrs (name: k:
+            { ${name} = k; "${name}-modules" = k.modules; }
+            // lib.optionalAttrs (lib.isDerivation (k.configfile or null)) { "${name}-config" = k.configfile; }
+          ) self.kernels;
+          drivers = lib.listToAttrs (map (d: { name = "driver-${d.pname or d.name}"; value = d; }) self.nvidia);
+        in
+        {
+          x86_64-linux = kernels // drivers // {
+            device-recipes = host.runCommand "device-recipes" { kernels = builtins.attrValues kernels; } ''
+              cp -r ${self.packages.aarch64-linux.device-recipes} $out
+            '';
+          };
+          aarch64-linux = removeAttrs self.packages.aarch64-linux [ "device-recipes" ];
+        };
     };
 }
