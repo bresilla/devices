@@ -67,6 +67,10 @@ let
       # The AP500U pen reports format 0x02, which the driver would drop.
       sed -i "s/if (pen_format_id == 0x01) {/if (pen_format_id == 0x01 || pen_format_id == 0x02) {/" \
         drivers/input/touchscreen/nt36523/nt36xxx.c
+      # Lenovo's 0x7B command takes a support flag: 1 enables pen scanning,
+      # 0 disables it. The port passed the disable flag with reversed polarity.
+      substituteInPlace drivers/input/touchscreen/nt36523/nt36xxx.c \
+        --replace-fail 'buf[2] = !!disable;' 'buf[2] = !disable;'
       runHook postBuild
     '';
     installPhase = "cp -r . $out";
