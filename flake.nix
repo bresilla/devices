@@ -100,7 +100,7 @@
           spark.driver.persistenced
         ];
 
-      # What build.bresilla.com builds on every push; nixbot.toml says which cache each
+      # What build.bresilla.com builds on every push; .muros.lua says which cache each
       # goes to. Kernels and what goes with them are cross-built (x86_64); firmware is
       # aarch64. device-recipes depends on every kernel, so it is built, and pinned,
       # only once they all are.
