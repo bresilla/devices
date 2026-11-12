@@ -1,15 +1,18 @@
-{ lib, firmwares, ... }:
+{ lib, pkgs, firmwares, ... }:
 let
   nixos-raspberrypi = import ./nixos-raspberrypi.nix;
 in
 {
-  # Firmware comes from ../firmware; nixos-raspberrypi still supplies the kernel.
+  # Firmware comes from ../firmware.
   boot.loader.raspberry-pi.firmwarePackage = firmwares.raspberrypi-firmware;
   nixpkgs.overlays = [
     (_: _: { raspberrypiWirelessFirmware = firmwares.raspberrypi-wireless-firmware; })
   ];
 
-  # Vendor kernel from nixos-raspberrypi, prebuilt on its Cachix.
+  # nixos-raspberrypi's vendor kernel, cross-compiled on tron and published to /kernels;
+  # the Pi only downloads it.
+  boot.kernelPackages = lib.mkForce (pkgs.linuxPackagesFor (import ../kernel { buildSystem = "x86_64-linux"; }).kernel);
+
   imports = with nixos-raspberrypi.nixosModules; [
     nixpkgs-rpi
     nixos-raspberrypi.lib.inject-overlays

@@ -66,6 +66,7 @@
           odin3 = odin3.kernel;
           tb321fu = tb321fu.kernel;
           spark = spark.kernel;
+          rpi5 = (import ./raspberrypi-pi5/kernel { inherit buildSystem; }).kernel;
           t480 = (import ./lenovo-t480/kernel).kernel;
           surface = (import ./microsoft-surfacepro5/kernel).kernel;
         };
