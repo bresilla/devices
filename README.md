@@ -13,28 +13,26 @@ Each `<manufacturer-product>/` holds what anyone with that hardware would want:
 
 ## How it reaches a machine
 
-- **Firmware** is built by CI on push and stored in `cache.bresilla.com/firmwares`, along with NVIDIA's drivers.
-- **Kernels** are cross-compiled on tron with `make kernels` and stored only in
-  `cache.bresilla.com/kernels`. Run it before pushing a recipe.
+build.bresilla.com builds the flake's `checks` on every push to main, as
+`.muros.lua` describes, and pins each result in cache.bresilla.com:
+
+- **Firmware** and NVIDIA's drivers go to `cache.bresilla.com/firmwares`.
+- **Kernels**, cross-compiled on tron, go to `cache.bresilla.com/kernels`.
 - **`device-recipes`** bundles every `kernel/` and `software/`. The updater in
   bresilla/nixos copies it into its flake.
 
-CI commits `pins.json` only after everything is uploaded, and refuses to publish
-when a kernel is missing from `/kernels`, so a machine never compiles one.
+`device-recipes` depends on every kernel, so it is pinned only once they are all
+built, and a machine never compiles one. A failed build keeps the previous pin.
 Neither cache is pruned; old kernels stay until removed by hand.
 
 ## Changing a kernel
 
 1. Edit `<device>/kernel/`.
-2. Run `make kernels`.
-3. On a device that writes its boot partition directly, such as the Fairphone 6,
+2. On a device that writes its boot partition directly, such as the Fairphone 6,
    test the image with `fastboot boot` first.
-4. Push.
+3. Push, and follow the run on build.bresilla.com.
 
-To build and publish only the T480 kernel, run `make kernels KERNELS=t480`.
-Run it on core, which holds the Attic login; tron does the build. The destination
-defaults to `home:kernels` and can be changed with `ATTIC_CACHE=server:kernels`.
-Its pinned NixOS kernel enables the ThinkPad driver facilities needed to bypass
+The T480's pinned NixOS kernel enables the ThinkPad driver facilities needed to bypass
 coreboot's false master-radio block; the hardware module supplies the switch
 parameters. Normal host updates reuse the cached kernel and modules.
 

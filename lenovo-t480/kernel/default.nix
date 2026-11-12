@@ -1,5 +1,5 @@
 # Keep this evaluation independent of the host's nixpkgs so updates reuse the
-# kernel uploaded by `make kernels`, including its NixOS default configuration.
+# kernel build.bresilla.com publishes, including its NixOS default configuration.
 let
   nixpkgsSrc = builtins.fetchGit {
     url = "https://github.com/NixOS/nixpkgs";
