@@ -112,7 +112,8 @@
             { ${name} = k; "${name}-modules" = k.modules; }
             // lib.optionalAttrs (lib.isDerivation (k.configfile or null)) { "${name}-config" = k.configfile; }
           ) self.kernels;
-          drivers = lib.listToAttrs (map (d: { name = "driver-${d.pname or d.name}"; value = d; }) self.nvidia);
+          # Names without the version: muros splits check names on dots.
+          drivers = lib.listToAttrs (map (d: { name = "driver-${d.pname or (builtins.parseDrvName d.name).name}"; value = d; }) self.nvidia);
         in
         {
           x86_64-linux = kernels // drivers // {
