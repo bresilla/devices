@@ -71,6 +71,8 @@ let
       # 0 disables it. The port passed the disable flag with reversed polarity.
       substituteInPlace drivers/input/touchscreen/nt36523/nt36xxx.c \
         --replace-fail 'buf[2] = !!disable;' 'buf[2] = !disable;'
+      # The pen only scans with the stock 120 Hz timing and B2/B3 pen profile.
+      patch -p1 -F0 --no-backup-if-mismatch --quiet < ${./panel-pen-120hz.patch}
       runHook postBuild
     '';
     installPhase = "cp -r . $out";

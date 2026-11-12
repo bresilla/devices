@@ -18,7 +18,7 @@ in
     "-w" "2560" "-h" "1600"
     # Steam never sets its touch mode here, so touch stays touch instead of a pointer.
     "--default-touch-mode" "4"
-    # 60 Hz rather than the preferred 165 Hz.
+    # 60 Hz rather than the preferred 120 Hz.
     "-r" "60"
   ];
   # Steam treats the EDID-less panel as an external screen; 2 gives the Deck's 800p layout.

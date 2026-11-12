@@ -1,0 +1,51 @@
+--- a/drivers/gpu/drm/panel/panel-novatek-nt36523.c	2026-11-12 11:07:09.692734800 +0000
++++ b/drivers/gpu/drm/panel/panel-novatek-nt36523.c	2026-11-12 11:07:09.694403141 +0000
+@@ -1440,12 +1440,11 @@
+ 	mipi_dsi_dual_dcs_write_seq(dsi0, dsi1, 0x91, 0x89, 0x28, 0x00, 0x14, 0xc2, 0x00, 0x02, 0x91, 0x02, 0x47, 0x00, 0x0b, 0x05, 0x0e, 0x03, 0x68);
+ 	mipi_dsi_dual_dcs_write_seq(dsi0, dsi1, 0x92, 0x10, 0xe0);
+ 	/*
+-	 * Run the panel in its 165 Hz class (stock dispparam-pen-165hz-power-on-command);
+-	 * lower rates come from a longer VFP at the same link clock, like Android's
+-	 * dfps_immediate_porch_mode_vfp.
++	 * Stock 120 Hz profile (dispparam-pen-others): B2 0x91 enables the pen
++	 * scan control that the digitizer needs; 0x80 disables it.
+ 	 */
+-	mipi_dsi_dual_dcs_write_seq(dsi0, dsi1, 0xb2, 0x80);
+-	mipi_dsi_dual_dcs_write_seq(dsi0, dsi1, 0xb3, 0x20);
++	mipi_dsi_dual_dcs_write_seq(dsi0, dsi1, 0xb2, 0x91);
++	mipi_dsi_dual_dcs_write_seq(dsi0, dsi1, 0xb3, 0x01);
+ 	mipi_dsi_dual_dcs_write_seq(dsi0, dsi1, 0xbb, 0x13);
+ 	mipi_dsi_dual_dcs_write_seq(dsi0, dsi1, 0x11);
+ 	msleep(105);
+@@ -1454,13 +1453,13 @@
+ }
+ 
+ /*
+- * htotal 2314; pixel clock 2314 * 2850 * 165 Hz. Each of the two layer mixers
+- * drives 800 px, so the MDP core needs ~395 MHz (max 514 MHz).
++ * htotal 2314; pixel clock 2314 * 2850 * 120 Hz, the stock base timing. The
++ * pen scan only runs with this clock; 60 Hz comes from a longer VFP.
+  */
+-#define KIRBY_BOE_165_CLOCK	1088159
++#define KIRBY_BOE_120_CLOCK	791388
+ #define KIRBY_BOE_MODE(vfp)					\
+ 	{							\
+-		.clock = KIRBY_BOE_165_CLOCK,			\
++		.clock = KIRBY_BOE_120_CLOCK,			\
+ 		.hdisplay = 1600,				\
+ 		.hsync_start = 1600 + 566,			\
+ 		.hsync_end = 1600 + 566 + 40,			\
+@@ -1472,11 +1471,8 @@
+ 	}
+ 
+ static const struct drm_display_mode kirby_boe_modes[] = {
+-	KIRBY_BOE_MODE(30),	/* 165 Hz, preferred */
+-	KIRBY_BOE_MODE(446),	/* 144 Hz */
+-	KIRBY_BOE_MODE(1099),	/* 120 Hz */
+-	KIRBY_BOE_MODE(2405),	/*  90 Hz */
+-	KIRBY_BOE_MODE(5018),	/*  60 Hz */
++	KIRBY_BOE_MODE(30),	/* 120 Hz, preferred */
++	KIRBY_BOE_MODE(2880),	/*  60 Hz */
+ };
+ 
+ static const struct panel_desc kirby_boe_desc = {
