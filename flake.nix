@@ -67,6 +67,7 @@
           tb321fu = tb321fu.kernel;
           spark = spark.kernel;
           rpi5 = (import ./raspberrypi-pi5/kernel { inherit buildSystem; }).kernel;
+          vf2lite = (import ./starfive-visionfive2lite/kernel { inherit buildSystem; }).kernel;
           t480 = (import ./lenovo-t480/kernel).kernel;
           surface = (import ./microsoft-surfacepro5/kernel).kernel;
         };
@@ -118,6 +119,8 @@
         in
         {
           x86_64-linux = kernels // drivers // {
+            # RISC-V boot firmware, cross-built like the kernels.
+            vf2lite-firmware = import ./starfive-visionfive2lite/firmware { buildSystem = "x86_64-linux"; };
             device-recipes = host.runCommand "device-recipes" { kernels = builtins.attrValues kernels; } ''
               cp -r ${self.packages.aarch64-linux.device-recipes} $out
             '';
