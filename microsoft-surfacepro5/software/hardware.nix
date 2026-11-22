@@ -5,5 +5,5 @@
   # Built once on tron and published to /kernels; replaces nixos-hardware's kernel.
   boot.kernelPackages = lib.mkForce (pkgs.linuxPackagesFor (import ../kernel).kernel);
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  bresilla.features.system = { architecture = "x86_64"; cpuVendor = "intel"; };
 }
