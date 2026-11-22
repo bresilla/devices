@@ -8,8 +8,10 @@ images=${1:?usage: provision.sh <tb321fu-images output> <work dir> [username]}
 work=${2:?usage: provision.sh <tb321fu-images output> <work dir> [username]}
 user=${3:-${SUDO_USER:-}}
 [[ $EUID == 0 ]] || { echo "provision.sh: run as root" >&2; exit 1; }
+# The image gets a Wi-Fi password and a password hash: private to whoever flashes it.
+umask 077
 
-mkdir -p "$work"
+install -d -m 0700 "$work"
 cp --no-preserve=mode "$images/boot.img" "$images/super.img" "$work/"
 zstd -dc "$images/userdata.img.zst" > "$work/userdata.img"
 
@@ -42,4 +44,5 @@ sync
 umount "$mnt"
 img2simg "$work/userdata.img" "$work/userdata.simg"
 rm "$work/userdata.img"
+[[ -n ${SUDO_USER:-} ]] && chown -R "$SUDO_USER" "$work"
 echo "ready to flash: $work"

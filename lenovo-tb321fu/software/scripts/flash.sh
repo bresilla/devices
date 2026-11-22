@@ -47,6 +47,7 @@ case "${1:-}" in
     "${tools[@]}" fastboot flash boot_a "$work/boot.img"
     "${tools[@]}" fastboot flash super "$work/super.img"
     "${tools[@]}" fastboot -S 700M flash userdata "$work/userdata.simg"
+    rm -f "$work/userdata.simg"
     "${tools[@]}" fastboot reboot
     echo "Flashed. If the screen stays black after the logo, pick NixOS (other panel) at the menu."
     ;;
