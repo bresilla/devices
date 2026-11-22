@@ -21,18 +21,9 @@
   };
   # This XPS has no cellular modem requiring the development modem packages.
   bresilla.features.network.cellular.enable = false;
-  # Keep virtual storage available while preparing the physical SSD in QEMU.
-  boot.initrd.availableKernelModules = [
-    "virtio_pci"
-    "virtio_scsi"
-    "virtio_blk"
-  ];
   boot.kernelModules = [ "kvm-intel" ];
   # The dGPU only reaches D3cold when its PCIe port may suspend, also on AC.
   services.tlp.settings.RUNTIME_PM_ENABLE = "00:01.0";
   # Without GSP the closed driver handles power itself, and the idle GPU reaches D3cold.
   boot.extraModprobeConfig = "options nvidia NVreg_EnableGpuFirmware=0";
-  boot.resumeDevice = "/dev/pool/swap";
-  # The VM's virtual disk has no SMART data; monitor the SSD on bare metal.
-  systemd.services.smartd.unitConfig.ConditionVirtualization = "!vm";
 }

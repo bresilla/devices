@@ -8,7 +8,6 @@
     architecture = "x86_64";
     cpuVendor = "intel";
   };
-  boot.resumeDevice = "/dev/pool/swap";
   boot.kernelParams = [
     "mem_sleep_default=deep"
     "thinkpad_acpi.force_load=1"

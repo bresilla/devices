@@ -1,7 +1,7 @@
 { lib, pkgs, firmwares, bresilla, ... }:
 let
   dgxSpark = import ../kernel/dgx-spark.nix;
-  # Always cross-compiled on tron; lama downloads it from /kernels.
+  # Always cross-compiled on an x86_64 builder; the machine downloads it from /kernels.
   spark = import ../kernel {
     inherit dgxSpark;
     buildSystem = "x86_64-linux";
@@ -13,9 +13,6 @@ in
   imports = [
     "${dgxSpark}/modules/dgx-spark.nix"
   ];
-  # The workstation profile's x86-only parts.
-  bresilla.programs.isaacsim.enable = false;
-  boot.binfmt.emulatedSystems = lib.mkForce [ ];
 
   hardware.dgx-spark.enable = true;
   # As DGX OS boots: CUDA's unified memory uses ATS, which needs the SMMU translating, and
@@ -36,9 +33,6 @@ in
   # CUDA lives in development shells; system-wide it would rebuild every CUDA-capable
   # package, none of which the binary caches carry.
   nixpkgs.config.cudaSupport = false;
-  # No containers on this machine.
-  virtualisation.podman.enable = lib.mkForce false;
-  hardware.nvidia-container-toolkit.enable = lib.mkForce false;
   # The DGX Spark module takes nvtop from here; this one is built by packages/.
   nixpkgs.overlays = [
     (final: prev: {
@@ -56,11 +50,11 @@ in
     {
       # nixpkgs.config merges without priorities; fail rather than rebuild everything.
       assertion = !pkgs.config.cudaSupport;
-      message = "lama: nixpkgs.config.cudaSupport must stay off system-wide.";
+      message = "DGX Spark: nixpkgs.config.cudaSupport must stay off system-wide.";
     }
     {
       assertion = lib.hasPrefix driver.version spark.nvidiaOpen.version;
-      message = "lama: the NVIDIA libraries and kernel module versions differ.";
+      message = "DGX Spark: the NVIDIA libraries and kernel module versions differ.";
     }
   ];
 }

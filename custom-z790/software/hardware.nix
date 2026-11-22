@@ -22,5 +22,4 @@
     "sd_mod"
   ];
   boot.kernelModules = [ "kvm-intel" ];
-  boot.resumeDevice = "/dev/pool/swap";
 }
