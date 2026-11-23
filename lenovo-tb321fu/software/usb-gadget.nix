@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 let
   device = "02:00:00:00:04:01";
-  host = "02:00:00:00:04:02";
+  host = (lib.importJSON ./gadget.json).mac;
   signaller = config.bresilla.features.system.usbSignaller.enable;
 in
 {

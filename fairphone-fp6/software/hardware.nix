@@ -105,7 +105,7 @@ in
       echo 'NCM networking' > "$gadget/configs/c.1/strings/0x409/configuration"
       mkdir -p "$gadget/functions/ncm.usb0"
       echo 02:00:00:00:06:01 > "$gadget/functions/ncm.usb0/dev_addr"
-      echo 02:00:00:00:06:02 > "$gadget/functions/ncm.usb0/host_addr"
+      echo ${(lib.importJSON ./gadget.json).mac} > "$gadget/functions/ncm.usb0/host_addr"
       if [ ! -L "$gadget/configs/c.1/ncm.usb0" ]; then
         ln -s "$gadget/functions/ncm.usb0" "$gadget/configs/c.1/ncm.usb0"
       fi
